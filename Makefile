@@ -5,9 +5,10 @@ N64_ROM_NAME  := shattered_realms_alpha
 N64_ROM_TITLE := Shattered Realms (alpha)
 
 # =========================
-# Sources
+# Sources / Objects
 # =========================
-SRCS := src/main.c
+# Put main.c at the repo root so n64.mk's default %.o: %.c rules pick it up.
+OBJS := main.o
 
 # =========================
 # ROMFS (packed filesystem)
