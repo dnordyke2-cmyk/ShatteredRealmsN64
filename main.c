@@ -1,20 +1,26 @@
 #include <libdragon.h>
-#include <filesystem.h>   // <-- adds file_t and dfs_* APIs
+#include <dfs.h>        // DFS / ROMFS APIs (file_t, dfs_open, dfs_*)
+
 #include <string.h>
+
+/* Fallback: some libdragon variants name the default mount differently. */
+#ifndef DFS_DEFAULT_LOCATION
+#define DFS_DEFAULT_LOCATION ROMFS_DEFAULT
+#endif
 
 /* Read a small text file from ROMFS into a buffer. */
 static void read_text_file(const char *path, char *out, size_t outsz) {
     out[0] = 0;
     file_t f = dfs_open(path);
     if (!f) {
-        strncpy(out, "(missing)", outsz-1);
-        out[outsz-1] = 0;
+        strncpy(out, "(missing)", outsz - 1);
+        out[outsz - 1] = 0;
         return;
     }
     int sz = dfs_size(f);
     if (sz < 0) {
-        strncpy(out, "(error)", outsz-1);
-        out[outsz-1] = 0;
+        strncpy(out, "(error)", outsz - 1);
+        out[outsz - 1] = 0;
         dfs_close(f);
         return;
     }
@@ -43,7 +49,7 @@ int main(void) {
         graphics_fill_screen(disp, 0x0000);
         printf("Shattered Realms (alpha)\n");
         printf("ROMFS version: %s\n", version);
-        printf("Rendering... (press reset in emulator to quit)\n");
+        printf("Rendering... (reset in emulator to quit)\n");
 
         console_render();
         display_show(disp);
