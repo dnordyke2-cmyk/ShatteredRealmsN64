@@ -5,9 +5,9 @@ N64_ROM_NAME  := shattered_realms_alpha
 N64_ROM_TITLE := Shattered Realms (alpha)
 
 # =========================
-# Objects (use libdragon's default %.o: %.c in SAME DIR)
+# Objects (sources live at REPO ROOT; e.g., main.c -> main.o)
 # =========================
-# Keep sources at the REPO ROOT (e.g., main.c) so the default rule applies.
+# IMPORTANT: OBJS must be set *before* including n64.mk.
 OBJS := main.o
 
 # =========================
@@ -23,8 +23,9 @@ $(ROMFS_IMG): $(shell find $(ROMFS_DIR) -type f 2>/dev/null)
 	$(MKDFS) $@ $(ROMFS_DIR)
 
 # =========================
-# Bring in libdragon rules/toolchain
+# libdragon toolchain rules
 # =========================
+# Valid in the anacierdem/libdragon container:
 include /usr/local/include/n64.mk
 
 # =========================
