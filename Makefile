@@ -6,11 +6,14 @@ N64_ROM_TITLE := Shattered Realms (alpha1)
 
 # =========================
 # Sources / Objects
-# Compile sources to build/*.o and let n64.mk link them.
-# Keep main.c at the REPO ROOT for now.
 # =========================
 SRCS := main.c
 OBJS := $(SRCS:%.c=build/%.o)
+
+# Compile rule: main.c -> build/main.o  (uses CC/CFLAGS from n64.mk at run time)
+build/%.o: %.c
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -MMD -c -o $@ $<
 
 # =========================
 # ROMFS (packed filesystem)
@@ -20,22 +23,21 @@ MKDFS ?= mkdfs
 ROMFS_IMG := build/romfs.dfs
 N64_ROMFS := $(ROMFS_IMG)
 
-# Compile: main.c -> build/main.o
-build/%.o: %.c
-	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -MMD -c -o $@ $<
-
 # Pack ROMFS robustly
 $(ROMFS_IMG): $(shell find $(ROMFS_DIR) -type f 2>/dev/null)
 	mkdir -p $(dir $@)
 	$(MKDFS) $@ $(ROMFS_DIR)
 
+# =========================
 # Bring in libdragon rules/toolchain
+# =========================
 include /usr/local/include/n64.mk
 
-# Convenience targets
-.PHONY: all clean
-all: $(N64_ROM_NAME).z64
+# >>> CRUCIAL: ensure the ELF depends on our OBJS so compile runs first
+$(N64_ROM_NAME).elf: $(OBJS)
 
-clean:
-	rm -rf build $(N64_ROM_NAME).elf $(N64_ROM_NAME).z64
+# =========================
+# Convenience targets
+# =========================
+.PHONY: all clean
+all: $(N
