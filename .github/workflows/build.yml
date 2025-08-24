@@ -8,23 +8,27 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container:
-      image: anacierdem/libdragon:latest
+
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Show tool versions
+      - name: Show runner info
         run: |
-          mips64-elf-gcc -v || true
-          command -v mkdfs || true
-          test -f /usr/local/include/n64.mk && echo "n64.mk present"
+          uname -a
+          docker --version
 
-      - name: Build
+      - name: Pull libdragon toolchain image
+        run: docker pull anacierdem/libdragon:latest
+
+      - name: Build inside libdragon container
         run: |
           mkdir -p build romfs
           [ -f romfs/version.txt ] || echo v1 > romfs/version.txt
-          make clean all
+          docker run --rm \
+            -v "$PWD:/src" \
+            anacierdem/libdragon:latest \
+            bash -lc 'cd /src && make clean all'
 
       - name: Upload ROM artifact
         uses: actions/upload-artifact@v4
