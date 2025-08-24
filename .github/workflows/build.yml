@@ -27,6 +27,11 @@ jobs:
           test -f Makefile || { echo "ERROR: Makefile missing"; exit 1; }
           test -f main.c   || { echo "ERROR: main.c missing at repo root"; exit 1; }
 
+- name: Show main.c we are about to build
+        run: |
+          echo "----- main.c (first 120 lines) -----"
+          sed -n '1,120p' main.c
+
       - name: Build inside libdragon container
         run: |
           mkdir -p build romfs
