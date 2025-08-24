@@ -1,7 +1,8 @@
 #include <libdragon.h>
+#include <filesystem.h>   // <-- adds file_t and dfs_* APIs
 #include <string.h>
 
-/* Simple helper: read a small file from ROMFS into a buffer. */
+/* Read a small text file from ROMFS into a buffer. */
 static void read_text_file(const char *path, char *out, size_t outsz) {
     out[0] = 0;
     file_t f = dfs_open(path);
@@ -28,8 +29,8 @@ int main(void) {
     display_init(RESOLUTION_320x240, DEPTH_16_BPP, 2, GAMMA_NONE, ANTIALIAS_RESAMPLE);
     console_init();
 
-    /* Mount ROMFS (built from /romfs in the repo) */
-    dfs_init( DFS_DEFAULT_LOCATION );
+    /* Mount ROMFS (packed from /romfs in your repo) */
+    dfs_init(DFS_DEFAULT_LOCATION);
 
     /* Read romfs/version.txt to prove assets are included */
     char version[64];
