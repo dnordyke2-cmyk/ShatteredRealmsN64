@@ -1,14 +1,16 @@
 # =========================
 # Project metadata
 # =========================
-N64_ROM_NAME  := shattered_realms_alpha
-N64_ROM_TITLE := Shattered Realms (alpha)
+N64_ROM_NAME  := shattered_realms_alpha1
+N64_ROM_TITLE := Shattered Realms (alpha1)
 
 # =========================
-# Objects (sources live at REPO ROOT; e.g., main.c -> main.o)
+# Sources / Objects
+# Compile sources to build/*.o and let n64.mk link them.
+# Keep main.c at the REPO ROOT for now.
 # =========================
-# IMPORTANT: OBJS must be set *before* including n64.mk.
-OBJS := main.o
+SRCS := main.c
+OBJS := $(SRCS:%.c=build/%.o)
 
 # =========================
 # ROMFS (packed filesystem)
@@ -18,19 +20,20 @@ MKDFS ?= mkdfs
 ROMFS_IMG := build/romfs.dfs
 N64_ROMFS := $(ROMFS_IMG)
 
+# Compile: main.c -> build/main.o
+build/%.o: %.c
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -MMD -c -o $@ $<
+
+# Pack ROMFS robustly
 $(ROMFS_IMG): $(shell find $(ROMFS_DIR) -type f 2>/dev/null)
 	mkdir -p $(dir $@)
 	$(MKDFS) $@ $(ROMFS_DIR)
 
-# =========================
-# libdragon toolchain rules
-# =========================
-# Valid in the anacierdem/libdragon container:
+# Bring in libdragon rules/toolchain
 include /usr/local/include/n64.mk
 
-# =========================
 # Convenience targets
-# =========================
 .PHONY: all clean
 all: $(N64_ROM_NAME).z64
 
