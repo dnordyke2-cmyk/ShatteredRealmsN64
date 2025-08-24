@@ -5,10 +5,10 @@ N64_ROM_NAME  := shattered_realms_alpha
 N64_ROM_TITLE := Shattered Realms (alpha)
 
 # =========================
-# Sources / Objects (compile src/*.c -> build/*.o)
+# Objects (use libdragon's default %.o: %.c in SAME DIR)
 # =========================
-SRCS := $(wildcard src/*.c)
-OBJS := $(patsubst src/%.c,build/%.o,$(SRCS))
+# Keep sources at the REPO ROOT (e.g., main.c) so the default rule applies.
+OBJS := main.o
 
 # =========================
 # ROMFS (packed filesystem)
@@ -18,20 +18,18 @@ MKDFS ?= mkdfs
 ROMFS_IMG := build/romfs.dfs
 N64_ROMFS := $(ROMFS_IMG)
 
-# Bring in libdragon rules/toolchain (provides CC/CFLAGS and link rules)
-include /usr/local/include/n64.mk
-
-# Compile rule: make sure build/ exists, then compile
-build/%.o: src/%.c
-	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -MMD -c -o $@ $<
-
-# Pack ROMFS robustly
 $(ROMFS_IMG): $(shell find $(ROMFS_DIR) -type f 2>/dev/null)
 	mkdir -p $(dir $@)
 	$(MKDFS) $@ $(ROMFS_DIR)
 
+# =========================
+# Bring in libdragon rules/toolchain
+# =========================
+include /usr/local/include/n64.mk
+
+# =========================
 # Convenience targets
+# =========================
 .PHONY: all clean
 all: $(N64_ROM_NAME).z64
 
