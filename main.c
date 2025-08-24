@@ -1,11 +1,34 @@
 #include <libdragon.h>
-#include <dfs.h>        // DFS / ROMFS APIs (file_t, dfs_open, dfs_*)
-
 #include <string.h>
 
-/* Fallback: some libdragon variants name the default mount differently. */
-#ifndef DFS_DEFAULT_LOCATION
-#define DFS_DEFAULT_LOCATION ROMFS_DEFAULT
+/* ---------- Try to include the DFS/ROMFS header under any known name ---------- */
+#if defined(__has_include)
+  #if __has_include(<filesystem.h>)
+    #include <filesystem.h>
+    #define SR_HAS_DFS 1
+  #elif __has_include(<dfs.h>)
+    #include <dfs.h>
+    #define SR_HAS_DFS 1
+  #elif __has_include(<dragonfs.h>)
+    /* Some older libdragon builds use dragonfs.h */
+    #include <dragonfs.h>
+    #define SR_HAS_DFS 1
+  #endif
+#endif
+
+/* ---------- If none of the headers are available, declare the minimal API ---------- */
+#ifndef SR_HAS_DFS
+  /* In libdragon, dfs_open returns an integer handle. */
+  typedef int file_t;
+  extern file_t dfs_open(const char *path);
+  extern int    dfs_size(file_t f);
+  extern int    dfs_read(void *ptr, int size, int count, file_t f);
+  extern void   dfs_close(file_t f);
+  extern void   dfs_init(int location);
+  #ifndef DFS_DEFAULT_LOCATION
+    /* Safe fallback: default ROMFS mount (0 works with stock builds) */
+    #define DFS_DEFAULT_LOCATION 0
+  #endif
 #endif
 
 /* Read a small text file from ROMFS into a buffer. */
