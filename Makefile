@@ -33,7 +33,7 @@ $(ROMFS_IMG): $(shell find $(ROMFS_DIR) -type f 2>/dev/null)
 # =========================
 include /usr/local/include/n64.mk
 
-# >>> CRUCIAL: ensure the ELF depends on our OBJS so compile runs first
+# Ensure the ELF depends on our OBJS so compile runs first
 $(N64_ROM_NAME).elf: $(OBJS)
 
 # =========================
