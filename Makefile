@@ -6,6 +6,8 @@ N64_ROM_TITLE := Shattered Realms (alpha1)
 
 # =========================
 # Sources / Objects
+# Compile sources to build/*.o and let n64.mk link them.
+# Keep main.c at the REPO ROOT for now.
 # =========================
 SRCS := main.c
 OBJS := $(SRCS:%.c=build/%.o)
@@ -40,4 +42,7 @@ $(N64_ROM_NAME).elf: $(OBJS)
 # Convenience targets
 # =========================
 .PHONY: all clean
-all: $(N
+all: $(N64_ROM_NAME).z64
+
+clean:
+	rm -rf build $(N64_ROM_NAME).elf $(N64_ROM_NAME).z64
