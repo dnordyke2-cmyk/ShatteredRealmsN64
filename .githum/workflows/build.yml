@@ -1,0 +1,36 @@
+name: Build N64 ROM
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: anacierdem/libdragon:latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Show tool versions
+        run: |
+          mips64-elf-gcc -v || true
+          command -v mkdfs || true
+          test -f /usr/local/include/n64.mk && echo "n64.mk present"
+
+      - name: Build
+        run: |
+          mkdir -p build romfs
+          [ -f romfs/version.txt ] || echo v1 > romfs/version.txt
+          make clean all
+
+      - name: Upload ROM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: shattered_realms_alpha
+          path: |
+            *.z64
+            *.elf
+            build/**
