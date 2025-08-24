@@ -21,6 +21,13 @@ jobs:
       - name: Pull libdragon toolchain image
         run: docker pull anacierdem/libdragon:latest
 
+        - name: Sanity check files
+        run: |
+          ls -la
+          test -f main.c || { echo "ERROR: main.c missing at repo root"; exit 1; }
+          test -f Makefile || { echo "ERROR: Makefile missing"; exit 1; }
+        
+
       - name: Build inside libdragon container
         run: |
           mkdir -p build romfs
