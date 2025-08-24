@@ -1,4 +1,4 @@
-name: Build N64 ROM
+name: Build N64 ROM (pinned toolchain + report)
 
 on:
   push:
@@ -6,46 +6,66 @@ on:
   pull_request:
 
 jobs:
-  build:
+  build_pinned:
     runs-on: ubuntu-latest
 
     steps:
+      # 1) Pull your code
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # 2) Show runner info
       - name: Show runner info
         run: |
           uname -a
           docker --version
 
-      - name: Pull libdragon toolchain image
-        run: docker pull anacierdem/libdragon:latest
+      # 3) Pull the pinned libdragon toolchain image (digest locked)
+      - name: Pull libdragon toolchain (pinned)
+        run: docker pull anacierdem/libdragon@sha256:33dc3a87cd8db64a06688d58ed5140d4cbe95355dbf25a02e6d191f3429a2eee
 
-      - name: Sanity check files
-        run: |
-          ls -la
-          test -f Makefile || { echo "ERROR: Makefile missing"; exit 1; }
-          test -f main.c   || { echo "ERROR: main.c missing at repo root"; exit 1; }
-
+      # 4) Sanity: show the exact main.c we will build
       - name: Show main.c we are about to build
         run: |
           echo "----- main.c (first 120 lines) -----"
           sed -n '1,120p' main.c
 
-      - name: Build inside libdragon container
+      # 5) Toolchain report (what headers/symbols exist inside the container)
+      - name: Toolchain report (headers, symbols, macros)
+        run: |
+          docker run --rm anacierdem/libdragon@sha256:33dc3a87cd8db64a06688d58ed5140d4cbe95355dbf25a02e6d191f3429a2eee bash -lc '
+            set -e
+            echo "=== Headers likely related to DFS ==="
+            ls -1 /n64_toolchain/mips64-elf/include | grep -Ei "dfs|fs|dragon" || true
+            echo
+            echo "--- grep for dfs_open in headers ---"
+            grep -Rin "dfs_open" /n64_toolchain/mips64-elf/include || true
+            echo
+            echo "--- list dfs_* symbols in libdragon.a ---"
+            nm -g /n64_toolchain/mips64-elf/lib/libdragon.a | grep -E " dfs_| dragonfs_| romfs_| dfs_open| dfs_read| dfs_size| dfs_close" || true
+            echo
+            echo "--- preprocessor defines after including libdragon.h ---"
+            echo "#include <libdragon.h>" > /tmp/p.c
+            mips64-elf-gcc -E -dM /tmp/p.c | grep -Ei "DRAGON|DFS|ROMFS|LIBDRAGON" || true
+          '
+
+      # 6) Build inside the pinned container
+      - name: Build inside libdragon container (pinned)
         run: |
           mkdir -p build romfs
           [ -f romfs/version.txt ] || echo v1 > romfs/version.txt
-          # quick debug: show Makefile header & OBJS value inside the container
-          docker run --rm -v "$PWD:/src" anacierdem/libdragon:latest \
+          docker run --rm \
+            -v "$PWD:/src" \
+            anacierdem/libdragon@sha256:33dc3a87cd8db64a06688d58ed5140d4cbe95355dbf25a02e6d191f3429a2eee \
             bash -lc 'cd /src && echo "--- Makefile (first 80 lines) ---"; sed -n "1,80p" Makefile; \
                               echo "--- make -pn OBJS/SRCS dump ---"; make -pn | awk -F= "/^(OBJS|SRCS)\s*=/ {print}"; \
                               echo "--- build ---"; make clean all'
 
+      # 7) Upload ROM and build outputs
       - name: Upload ROM artifact
         uses: actions/upload-artifact@v4
         with:
-          name: shattered_realms_alpha
+          name: shattered_realms_alpha1
           path: |
             *.z64
             *.elf
