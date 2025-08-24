@@ -10,24 +10,28 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1) Pull your code onto the runner (runs OUTSIDE the libdragon container)
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # 2) Show runner and docker info (handy for debugging)
       - name: Show runner info
         run: |
           uname -a
           docker --version
 
+      # 3) Pull the libdragon toolchain image (we will only use it for the build step)
       - name: Pull libdragon toolchain image
         run: docker pull anacierdem/libdragon:latest
 
-        - name: Sanity check files
+      # 4) Sanity check that the key files exist BEFORE we try to build
+      - name: Sanity check files
         run: |
           ls -la
-          test -f main.c || { echo "ERROR: main.c missing at repo root"; exit 1; }
           test -f Makefile || { echo "ERROR: Makefile missing"; exit 1; }
-        
+          test -f main.c   || { echo "ERROR: main.c missing at repo root"; exit 1; }
 
+      # 5) Ensure build/ and romfs/ exist, then build inside the libdragon container
       - name: Build inside libdragon container
         run: |
           mkdir -p build romfs
@@ -37,6 +41,7 @@ jobs:
             anacierdem/libdragon:latest \
             bash -lc 'cd /src && make clean all'
 
+      # 6) Upload the ROM and build outputs as a downloadable artifact
       - name: Upload ROM artifact
         uses: actions/upload-artifact@v4
         with:
