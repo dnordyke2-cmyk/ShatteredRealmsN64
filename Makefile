@@ -6,8 +6,6 @@ N64_ROM_TITLE := Shattered Realms (alpha1)
 
 # =========================
 # Sources / Objects
-# Compile sources to build/*.o and let n64.mk link them.
-# Keep main.c at the REPO ROOT for now.
 # =========================
 SRCS := main.c
 OBJS := $(SRCS:%.c=build/%.o)
