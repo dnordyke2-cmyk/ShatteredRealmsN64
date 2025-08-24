@@ -5,7 +5,7 @@ int main(void) {
     console_set_render_mode(RENDER_MANUAL);
     console_clear();
 
-    printf("Shattered Realms (alpha)\n");
+    printf("Shattered Realms (alpha1)\n");
     printf("Build OK. Rendering every 250ms…\n");
 
     while (1) {
